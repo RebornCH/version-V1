@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หมากรุกออนไลน์ - เล่นกับเพื่อนทั่วโลก</title>
+    <meta name="description" content="เล่นหมากรุกออนไลน์กับเพื่อนหรือผู้เล่นทั่วโลก สร้างห้องเชิญเพื่อน หรือสุ่มหาแมตช์ได้ทันที">
+    
+    <!-- PWA -->
+    <meta name="theme-color" content="#C41E3A">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="หมากรุกออนไลน์ - Chinese Dragon Style">
+    <meta property="og:description" content="เล่นหมากรุกออนไลน์กับเพื่อนหรือผู้เล่นทั่วโลก">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="หมากรุกออนไลน์">
+    <meta name="twitter:description" content="เล่นหมากรุกออนไลน์กับเพื่อนหรือผู้เล่นทั่วโลก">
+    
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="chinese-pattern"></div>
+    
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="mainMenu" class="menu-screen active">
+            <h1 class="game-title">
+                <span class="dragon">🐉</span>
+                หมากรุกออนไลน์
+                <span class="dragon">🐉</span>
+            </h1>
+            <p class="subtitle">สไตล์จีนมังกร</p>
+            
+            <div class="menu-buttons">
+                <button onclick="showScreen('quickMatchScreen')" class="btn btn-primary btn-large">
+                    ⚡ สุ่มหาแมตช์
+                </button>
+                <button onclick="showScreen('createRoomScreen')" class="btn btn-gold btn-large">
+                    🏠 สร้างห้องใหม่
+                </button>
+                <button onclick="showScreen('joinRoomScreen')" class="btn btn-red btn-large">
+                    🚪 เข้าห้องที่มีอยู่
+                </button>
+                <button onclick="startLocalGame()" class="btn btn-secondary btn-large">
+                    🎯 เล่นคนเดียว (Offline)
+                </button>
+            </div>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <span>สุ่มหาแมตช์เร็ว</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">👥</span>
+                    <span>เล่นกับเพื่อน</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🌍</span>
+                    <span>ผู้เล่นทั่วโลก</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Match Screen -->
+        <div id="quickMatchScreen" class="menu-screen">
+            <h2>⚡ สุ่มหาแมตช์</h2>
+            
+            <div class="time-control-selector">
+                <label>เลือกเวลา:</label>
+                <div class="time-options">
+                    <button class="time-option" data-time="1">1+0</button>
+                    <button class="time-option" data-time="3">3+0</button>
+                    <button class="time-option active" data-time="5">5+0</button>
+                    <button class="time-option" data-time="10">10+0</button>
+                    <button class="time-option" data-time="15">15+10</button>
+                    <button class="time-option" data-time="30">30+0</button>
+                </div>
+            </div>
+            
+            <div id="searchingStatus" class="searching-status" style="display: none;">
+                <div class="loader"></div>
+                <p>กำลังค้นหาผู้เล่น...</p>
+                <p class="search-info">เวลาที่เลือก: <span id="selectedTimeDisplay">5+0</span></p>
+                <button onclick="cancelQuickMatch()" class="btn btn-secondary">ยกเลิก</button>
+            </div>
+            
+            <div class="menu-buttons">
+                <button onclick="startQuickMatch()" class="btn btn-primary btn-large" id="startQuickMatchBtn">
+                    เริ่มค้นหา
+                </button>
+                <button onclick="showScreen('mainMenu')" class="btn btn-secondary">
+                    ← กลับ
+                </button>
+            </div>
+        </div>
+
+        <!-- Create Room Screen -->
+        <div id="createRoomScreen" class="menu-screen">
+            <h2>🏠 สร้างห้องใหม่</h2>
+            
+            <div class="time-control-selector">
+                <label>เลือกเวลา:</label>
+                <div class="time-options">
+                    <button class="time-option" data-time="1">1+0</button>
+                    <button class="time-option" data-time="3">3+0</button>
+                    <button class="time-option active" data-time="10">10+0</button>
+                    <button class="time-option" data-time="15">15+10</button>
+                    <button class="time-option" data-time="30">30+0</button>
+                    <button class="time-option" data-time="60">60+0</button>
+                </div>
+            </div>
+            
+            <div class="menu-buttons">
+                <button onclick="createRoom()" class="btn btn-gold btn-large">
+                    สร้างห้อง
+                </button>
+                <button onclick="showScreen('mainMenu')" class="btn btn-secondary">
+                    ← กลับ
+                </button>
+            </div>
+        </div>
+
+        <!-- Room Created Screen -->
+        <div id="roomCreatedScreen" class="menu-screen">
+            <h2>🏠 ห้องถูกสร้างแล้ว!</h2>
+            
+            <div class="room-info">
+                <p>รหัสห้อง:</p>
+                <div class="room-code" id="roomCodeDisplay">XXXXXX</div>
+                <button onclick="copyRoomCode()" class="btn btn-small btn-gold">
+                    📋 คัดลอกโค้ด
+                </button>
+                
+                <p class="share-text">แชร์ให้เพื่อนเพื่อเข้าร่วมห้อง:</p>
+                <div class="share-options">
+                    <button onclick="shareViaLink()" class="btn btn-small btn-secondary">
+                        🔗 แชร์ลิงก์
+                    </button>
+                </div>
+            </div>
+            
+            <div class="waiting-message">
+                <p>กำลังรอผู้เล่นคนที่ 2...</p>
+                <div class="loader small"></div>
+            </div>
+            
+            <div class="your-color">
+                <p>สีของคุณ:</p>
+                <span class="color-indicator white">⚪ ขาว</span>
+            </div>
+            
+            <button onclick="leaveRoom()" class="btn btn-secondary">
+                ออกจากห้อง
+            </button>
+        </div>
+
+        <!-- Join Room Screen -->
+        <div id="joinRoomScreen" class="menu-screen">
+            <h2>🚪 เข้าห้องที่มีอยู่</h2>
+            
+            <div class="join-form">
+                <label for="roomCodeInput">รหัสห้อง:</label>
+                <input type="text" id="roomCodeInput" placeholder="XXXXXXXX" maxlength="8" 
+                       pattern="[A-Za-z0-9]{8}" autocomplete="off">
+                
+                <label for="playerColorSelect">เลือกสี:</label>
+                <select id="playerColorSelect">
+                    <option value="white">⚪ ขาว</option>
+                    <option value="black">⚫ ดำ</option>
+                </select>
+            </div>
+            
+            <div class="menu-buttons">
+                <button onclick="joinRoom()" class="btn btn-primary btn-large">
+                    เข้าร่วมห้อง
+                </button>
+                <button onclick="showScreen('mainMenu')" class="btn btn-secondary">
+                    ← กลับ
+                </button>
+            </div>
+        </div>
+
+        <!-- Waiting for Player Screen -->
+        <div id="waitingForPlayerScreen" class="menu-screen">
+            <h2>เข้าร่วมห้องแล้ว!</h2>
+            
+            <div class="room-info">
+                <p>รหัสห้อง: <span id="joinedRoomCode">XXXXXX</span></p>
+            </div>
+            
+            <div class="waiting-message">
+                <p>กำลังรอเจ้าห้องเริ่มเกม...</p>
+                <div class="loader small"></div>
+            </div>
+            
+            <div class="your-color">
+                <p>สีของคุณ:</p>
+                <span id="joinedColorIndicator" class="color-indicator">⚪</span>
+            </div>
+            
+            <button onclick="leaveRoom()" class="btn btn-secondary">
+                ออกจากห้อง
+            </button>
+        </div>
+
+        <!-- Match Found Screen -->
+        <div id="matchFoundScreen" class="menu-screen">
+            <h2>✅ พบผู้เล่นแล้ว!</h2>
+            
+            <div class="match-info">
+                <div class="player-card">
+                    <p>คุณ</p>
+                    <span id="matchYourColor" class="color-indicator">⚪</span>
+                </div>
+                <div class="vs">VS</div>
+                <div class="player-card">
+                    <p>คู่แข่ง</p>
+                    <span id="matchOpponentColor" class="color-indicator">⚫</span>
+                </div>
+            </div>
+            
+            <div class="time-control-display">
+                <p>เวลา: <span id="matchTimeControl">10+0</span></p>
+            </div>
+            
+            <div class="loader"></div>
+            <p>กำลังเริ่มเกม...</p>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="game-screen">
+            <div class="game-header">
+                <div class="room-info-inline">
+                    <span id="gameRoomCode">Room: XXXXXXXX</span>
+                </div>
+                <div class="game-actions">
+                    <button onclick="offerDraw()" class="btn btn-small btn-secondary">
+                        🤝 เสนอเสมอ
+                    </button>
+                    <button onclick="resign()" class="btn btn-small btn-red">
+                        🏳️ ยอมแพ้
+                    </button>
+                    <button onclick="leaveGame()" class="btn btn-small btn-secondary">
+                        ❌ ออก
+                    </button>
+                </div>
+            </div>
+            
+            <div class="game-area">
+                <!-- Opponent Info -->
+                <div class="player-info opponent">
+                    <div class="player-avatar">⚫</div>
+                    <div class="player-details">
+                        <span class="player-name" id="opponentName">Opponent</span>
+                        <div class="timer" id="opponentTimer">10:00</div>
+                    </div>
+                    <div class="captured-pieces" id="opponentCaptured"></div>
+                </div>
+                
+                <!-- Chess Board -->
+                <div class="board-container">
+                    <div id="chessBoard" class="chessboard"></div>
+                    <div class="board-coordinates files">
+                        <span>a</span><span>b</span><span>c</span><span>d</span>
+                        <span>e</span><span>f</span><span>g</span><span>h</span>
+                    </div>
+                    <div class="board-coordinates ranks">
+                        <span>8</span><span>7</span><span>6</span><span>5</span>
+                        <span>4</span><span>3</span><span>2</span><span>1</span>
+                    </div>
+                </div>
+                
+                <!-- Player Info -->
+                <div class="player-info current">
+                    <div class="player-avatar">⚪</div>
+                    <div class="player-details">
+                        <span class="player-name" id="playerName">You</span>
+                        <div class="timer" id="playerTimer">10:00</div>
+                    </div>
+                    <div class="captured-pieces" id="playerCaptured"></div>
+                </div>
+            </div>
+            
+            <div class="game-status" id="gameStatus"></div>
+            
+            <!-- Promotion Modal -->
+            <div id="promotionModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <h3>เลือกการโปรโมท:</h3>
+                    <div class="promotion-options">
+                        <button class="promotion-btn" data-piece="q">♕</button>
+                        <button class="promotion-btn" data-piece="r">♖</button>
+                        <button class="promotion-btn" data-piece="b">♗</button>
+                        <button class="promotion-btn" data-piece="n">♘</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Over Modal -->
+            <div id="gameOverModal" class="modal" style="display: none;">
+                <div class="modal-content game-over">
+                    <h2 id="gameOverTitle">เกมจบแล้ว</h2>
+                    <p id="gameOverMessage"></p>
+                    <div class="game-over-actions">
+                        <button onclick="showScreen('mainMenu')" class="btn btn-primary btn-large">
+                            🏠 กลับสู่เมนูหลัก
+                        </button>
+                        <button onclick="rematch()" class="btn btn-gold btn-large" id="rematchBtn" style="display: none;">
+                            🔄 เล่นอีกครั้ง
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Draw Offer Modal -->
+            <div id="drawOfferModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <h3>🤝 คู่แข่งเสนอเสมอ</h3>
+                    <p>ต้องการยอมรับไหม?</p>
+                    <div class="draw-actions">
+                        <button onclick="acceptDraw()" class="btn btn-primary btn-large">
+                            ✅ ยอมรับ
+                        </button>
+                        <button onclick="declineDraw()" class="btn btn-secondary btn-large">
+                            ❌ ปฏิเสธ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Local Game Screen (Offline) -->
+        <div id="localGameScreen" class="game-screen">
+            <div class="game-header">
+                <h2>🎯 โหมดเล่นคนเดียว (Offline)</h2>
+                <button onclick="showScreen('mainMenu')" class="btn btn-small btn-secondary">
+                    ← กลับ
+                </button>
+            </div>
+            
+            <div class="game-area">
+                <div class="player-info">
+                    <div class="player-avatar">⚫</div>
+                    <div class="player-details">
+                        <span class="player-name">Black</span>
+                        <div class="timer" id="localBlackTimer">10:00</div>
+                    </div>
+                </div>
+                
+                <div class="board-container">
+                    <div id="localChessBoard" class="chessboard"></div>
+                </div>
+                
+                <div class="player-info">
+                    <div class="player-avatar">⚪</div>
+                    <div class="player-details">
+                        <span class="player-name">White</span>
+                        <div class="timer" id="localWhiteTimer">10:00</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-status" id="localGameStatus"></div>
+            <button onclick="resetLocalGame()" class="btn btn-secondary">
+                🔄 เริ่มเกมใหม่
+            </button>
+        </div>
+    </div>
+
+    <script src="chess.js"></script>
+    <script src="online-client.js"></script>
+</body>
+</html>
