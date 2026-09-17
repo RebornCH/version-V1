@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมหมากรุกสากล - Chess Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>♔ เกมหมากรุกสากล ♚</h1>
+            <p>Chess Game</p>
+        </header>
+
+        <div class="game-container">
+            <div class="player-info player-top" id="player2-info">
+                <div class="player-avatar">♚</div>
+                <div class="player-details">
+                    <h3 id="player2-name">ผู้เล่น 2 (ดำ)</h3>
+                    <div class="captured-pieces" id="captured-by-black"></div>
+                    <div class="timer" id="timer-black">10:00</div>
+                </div>
+            </div>
+
+            <div class="board-container">
+                <div class="board-label left">8</div>
+                <div id="chessboard" class="chessboard"></div>
+                <div class="board-label right">8</div>
+            </div>
+            <div class="files-label">
+                <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
+            </div>
+
+            <div class="player-info player-bottom" id="player1-info">
+                <div class="player-avatar">♔</div>
+                <div class="player-details">
+                    <h3 id="player1-name">ผู้เล่น 1 (ขาว)</h3>
+                    <div class="captured-pieces" id="captured-by-white"></div>
+                    <div class="timer" id="timer-white">10:00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-status" id="game-status">
+            <span id="status-text">ตาของผู้เล่น: ขาว</span>
+        </div>
+
+        <div class="controls">
+            <button onclick="newGame()" class="btn btn-primary">🎮 เกมใหม่</button>
+            <button onclick="undoMove()" class="btn btn-secondary">↩️ ย้อนกลับ</button>
+            <button onclick="flipBoard()" class="btn btn-secondary">🔄 หมุนกระดาน</button>
+            <button onclick="showHint()" class="btn btn-info">💡 คำแนะนำ</button>
+            <button onclick="toggleSound()" class="btn btn-secondary" id="sound-btn">🔊 เสียง: เปิด</button>
+            <button onclick="openSettings()" class="btn btn-settings">⚙️ ตั้งค่า</button>
+        </div>
+
+        <div class="move-history">
+            <h3>📜 ประวัติการเดิน</h3>
+            <div id="move-list" class="move-list"></div>
+        </div>
+
+        <div class="promotion-modal" id="promotion-modal">
+            <div class="modal-content">
+                <h3>เลือกชิ้นส่วนที่จะโปรโมท</h3>
+                <div class="promotion-pieces">
+                    <button onclick="promote('q')" class="promotion-btn">♕</button>
+                    <button onclick="promote('r')" class="promotion-btn">♖</button>
+                    <button onclick="promote('b')" class="promotion-btn">♗</button>
+                    <button onclick="promote('n')" class="promotion-btn">♘</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-modal" id="settings-modal">
+            <div class="modal-content">
+                <h3>⚙️ ตั้งค่าเกม</h3>
+                <div class="setting-row">
+                    <label>เวลาต่อฝั่ง (นาที):</label>
+                    <input type="number" id="time-control" value="10" min="1" max="60">
+                </div>
+                <div class="setting-row">
+                    <label>ชื่อผู้เล่น 1 (ขาว):</label>
+                    <input type="text" id="player1-name-input" value="ผู้เล่น 1">
+                </div>
+                <div class="setting-row">
+                    <label>ชื่อผู้เล่น 2 (ดำ):</label>
+                    <input type="text" id="player2-name-input" value="ผู้เล่น 2">
+                </div>
+                <div class="setting-row">
+                    <label>ธีม:</label>
+                    <select id="theme-select">
+                        <option value="classic">คลาสสิก</option>
+                        <option value="blue">น้ำเงิน</option>
+                        <option value="green">เขียว</option>
+                        <option value="wood">ไม้</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button onclick="saveSettings()" class="btn btn-primary">บันทึก</button>
+                    <button onclick="closeSettings()" class="btn btn-secondary">ปิด</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-over-modal" id="game-over-modal">
+            <div class="modal-content">
+                <h2 id="game-over-title">เกมจบ!</h2>
+                <p id="game-over-message"></p>
+                <button onclick="newGame()" class="btn btn-primary">🎮 เล่นอีกครั้ง</button>
+                <button onclick="closeGameOverModal()" class="btn btn-secondary">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="chess.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
