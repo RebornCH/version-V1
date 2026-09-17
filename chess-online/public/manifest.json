@@ -1,0 +1,26 @@
+{
+  "name": "chess-online-pwa",
+  "short_name": "หมากรุกออนไลน์",
+  "description": "เล่นหมากรุกออนไลน์กับเพื่อนหรือผู้เล่นทั่วโลก - สไตล์จีนมังกร",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0a0a",
+  "theme_color": "#C41E3A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "th"
+}
