@@ -304,9 +304,31 @@ class ChessGame {
         this.board[move.from.row][move.from.col] = null;
         piece.hasMoved = true;
         
-        // อัพเดทตำแหน่ง King
+        // อัพเดท castling rights เมื่อ King เดิน
         if (piece.type === 'k') {
             this.kings[piece.color] = { row: move.to.row, col: move.to.col };
+            this.castlingRights[piece.color].kingSide = false;
+            this.castlingRights[piece.color].queenSide = false;
+        }
+        
+        // อัพเดท castling rights เมื่อ Rook เดินหรือถูกกิน
+        if (piece.type === 'r') {
+            const kingRow = piece.color === 'white' ? 7 : 0;
+            if (move.from.row === kingRow && move.from.col === 0) {
+                this.castlingRights[piece.color].queenSide = false;
+            } else if (move.from.row === kingRow && move.from.col === 7) {
+                this.castlingRights[piece.color].kingSide = false;
+            }
+        }
+        
+        // ถ้า Rook ถูกกิน
+        if (capturedPiece && capturedPiece.type === 'r') {
+            const kingRow = capturedPiece.color === 'white' ? 7 : 0;
+            if (move.to.row === kingRow && move.to.col === 0) {
+                this.castlingRights[capturedPiece.color].queenSide = false;
+            } else if (move.to.row === kingRow && move.to.col === 7) {
+                this.castlingRights[capturedPiece.color].kingSide = false;
+            }
         }
         
         // En passant capture
@@ -349,6 +371,9 @@ class ChessGame {
         const piece = this.getPiece(move.from.row, move.from.col);
         const capturedPiece = this.makeMoveInternal(move);
         
+        // เก็บ type เดิมไว้สำหรับ undo promotion
+        const originalType = piece.type;
+        
         // Promotion
         if (piece.type === 'p' && (move.to.row === 0 || move.to.row === 7)) {
             piece.type = promotionType;
@@ -357,7 +382,7 @@ class ChessGame {
         // บันทึกประวัติการเดิน
         this.moveHistory.push({
             move,
-            piece: { ...piece },
+            piece: { ...piece, originalType },
             captured: capturedPiece ? { ...capturedPiece } : null,
             fen: this.getFEN()
         });
@@ -559,10 +584,12 @@ class ChessGame {
                 const rook = this.board[kingRow][5];
                 this.board[kingRow][7] = rook;
                 this.board[kingRow][5] = null;
+                rook.hasMoved = false;
             } else {
                 const rook = this.board[kingRow][3];
                 this.board[kingRow][0] = rook;
                 this.board[kingRow][3] = null;
+                rook.hasMoved = false;
             }
         }
         
@@ -574,9 +601,54 @@ class ChessGame {
             };
         }
         
+        // ย้อนกลับ promotion (เปลี่ยนกลับเป็นเบี้ย)
+        if (lastMove.piece.originalType === 'p') {
+            const wasPromotion = (lastMove.piece.color === 'white' && lastMove.move.to.row === 0) ||
+                                 (lastMove.piece.color === 'black' && lastMove.move.to.row === 7);
+            if (wasPromotion) {
+                this.board[lastMove.move.from.row][lastMove.move.from.col].type = 'p';
+            }
+        }
+        
+        // คืนค่า hasMoved ของ King และ piece อื่นๆ
+        this.board[lastMove.move.from.row][lastMove.move.from.col].hasMoved = lastMove.piece.hasMoved;
+        
         // สลับผู้เล่นกลับ
         this.currentPlayer = lastMove.piece.color;
         this.gameOver = false;
+        
+        // คืนค่า castling rights จาก FEN ที่บันทึกไว้
+        const fenParts = lastMove.fen.split(' ');
+        if (fenParts.length >= 2) {
+            const castlingStr = fenParts[2];
+            this.castlingRights.white.kingSide = castlingStr.includes('K');
+            this.castlingRights.white.queenSide = castlingStr.includes('Q');
+            this.castlingRights.black.kingSide = castlingStr.includes('k');
+            this.castlingRights.black.queenSide = castlingStr.includes('q');
+        }
+        
+        // คืนค่า en passant target จาก FEN ที่บันทึกไว้ (ถ้ามี)
+        if (fenParts.length >= 3 && fenParts[3] !== '-') {
+            const epFile = 'abcdefgh'.indexOf(fenParts[3].charAt(0));
+            const epRank = '12345678'.indexOf(fenParts[3].charAt(1));
+            if (epFile >= 0 && epRank >= 0) {
+                this.enPassantTarget = { row: 7 - epRank, col: epFile };
+            } else {
+                this.enPassantTarget = null;
+            }
+        } else {
+            this.enPassantTarget = null;
+        }
+        
+        // คืนค่า halfMoveClock
+        if (fenParts.length >= 4) {
+            this.halfMoveClock = parseInt(fenParts[4]) || 0;
+        }
+        
+        // คืนค่า fullMoveNumber
+        if (fenParts.length >= 5) {
+            this.fullMoveNumber = parseInt(fenParts[5]) || 1;
+        }
         
         return true;
     }
